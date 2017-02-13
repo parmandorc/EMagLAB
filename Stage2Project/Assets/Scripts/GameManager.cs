@@ -19,15 +19,11 @@ public class GameManager : MonoBehaviour
     private float TimeBetweenSpawns;
 
     private List<GameObject> mObjects;
-    private Player mPlayer;
     private State mState;
     private float mNextSpawn;
 
     void Awake()
     {
-        mPlayer = Instantiate(PlayerPrefab);
-        mPlayer.transform.parent = transform;
-
         ScreenManager.OnNewGame += ScreenManager_OnNewGame;
         ScreenManager.OnExitGame += ScreenManager_OnExitGame;
     }
@@ -35,7 +31,6 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         Arena.Calculate();
-        mPlayer.enabled = false;
         mState = State.Paused;
     }
 
@@ -72,15 +67,12 @@ public class GameManager : MonoBehaviour
             mObjects.Clear();
         }
 
-        mPlayer.transform.position = new Vector3(0.0f, 0.5f, 0.0f);
         mNextSpawn = TimeBetweenSpawns;
-        mPlayer.enabled = true;
         mState = State.Playing;
     }
 
     private void EndGame()
     {
-        mPlayer.enabled = false;
         mState = State.Paused;
     }
 
