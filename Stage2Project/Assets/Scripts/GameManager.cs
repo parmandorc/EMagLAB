@@ -30,7 +30,7 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        Arena.Calculate();
+        //Arena.Calculate();
         mState = State.Paused;
     }
 
