@@ -11,6 +11,8 @@ using UnityEngine.Networking;
  */ 
 public class GameManager : NetworkBehaviour
 {
+    public enum State { Playing, GameOver }
+
     [SerializeField]
     private GameObject [] SpawnPrefabs;
 
@@ -23,8 +25,19 @@ public class GameManager : NetworkBehaviour
     [SerializeField]
     private float TimeBetweenSpawns;
 
+    [SerializeField]
+    private float MaxGameDuration;
+
+    [SyncVar]
+    private State mState;
+
+    [SyncVar]
+    private float mGameTimeLeft;
+
     private List<GameObject> mObjects;
     private float mNextSpawn;
+
+    public static State GameState { get; private set; }
 
     void Awake()
     {
@@ -36,23 +49,46 @@ public class GameManager : NetworkBehaviour
     {
         if (isServer)
         {
-            mNextSpawn -= Time.deltaTime;
-            if (mNextSpawn <= 0.0f)
+            if (mState == State.Playing)
             {
-                if (mObjects == null)
+                mGameTimeLeft -= Time.deltaTime;
+                if (mGameTimeLeft <= 0.0f)
                 {
-                    mObjects = new List<GameObject>();
+                    OnGameOver();
                 }
 
-                int indexToSpawn = Random.Range(0, SpawnPrefabs.Length);
-                GameObject spawnObject = SpawnPrefabs[indexToSpawn];
-                GameObject spawnedInstance = Instantiate(spawnObject);
-                spawnedInstance.transform.parent = transform;
-                NetworkServer.Spawn(spawnedInstance);
-                mObjects.Add(spawnedInstance);
-                mNextSpawn = TimeBetweenSpawns;
+                mNextSpawn -= Time.deltaTime;
+                if (mNextSpawn <= 0.0f)
+                {
+                    SpawnObject();
+                }
             }
         }
+
+        if (GameState != mState)
+            GameState = mState;
+    }
+
+    private void OnGameOver()
+    {
+        mGameTimeLeft = 0.0f;
+        mState = State.GameOver;
+    }
+
+    private void SpawnObject()
+    {
+        if (mObjects == null)
+        {
+            mObjects = new List<GameObject>();
+        }
+
+        int indexToSpawn = Random.Range(0, SpawnPrefabs.Length);
+        GameObject spawnObject = SpawnPrefabs[indexToSpawn];
+        GameObject spawnedInstance = Instantiate(spawnObject);
+        spawnedInstance.transform.parent = transform;
+        NetworkServer.Spawn(spawnedInstance);
+        mObjects.Add(spawnedInstance);
+        mNextSpawn = TimeBetweenSpawns;
     }
 
     private void BeginNewGame()
@@ -66,7 +102,9 @@ public class GameManager : NetworkBehaviour
             mObjects.Clear();
         }
 
+        mState = State.Playing;
         mNextSpawn = TimeBetweenSpawns;
+        mGameTimeLeft = MaxGameDuration;
     }
 
     private void EndGame()

@@ -26,6 +26,8 @@ public class MagnetizedByPlayer : MonoBehaviour
 
 	void Update()
     {
+        if (GameManager.GameState != GameManager.State.Playing) return;
+
         // Not optimal to compute the closest player every frame. Potential optimization.
         FindClosestPlayer();
 

@@ -18,7 +18,7 @@ public class Player : NetworkBehaviour
 
     void Update()
     {
-        if (!isLocalPlayer) return;
+        if (!isLocalPlayer || GameManager.GameState == GameManager.State.GameOver) return;
 
         Vector3 direction = Vector3.zero;
 

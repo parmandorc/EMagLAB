@@ -33,6 +33,8 @@ public class FlockWithGroup : MonoBehaviour
 
     void Update()
     {
+        if (GameManager.GameState != GameManager.State.Playing) return;
+
         mCountDownToCheck -= Time.deltaTime;
         if (mCountDownToCheck <= 0.0f)
         {
