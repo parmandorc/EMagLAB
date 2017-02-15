@@ -69,36 +69,33 @@ public class FlockWithGroup : MonoBehaviour
         }
     }
 
+    /* For gameplay reasons, the flocking behaviour is limited to a simplified version of it, where boids only
+     *  avoid each other so the group does not collapse. For the designed gameplay, neither alignment nor
+     *  cohesion are needed (or wanted).
+     */ 
     private void FlockWithBuddies()
     {
         if (mCurrentBuddies.Count > 0)
         {
-            Vector3 align = Vector3.zero;
-            Vector3 cohesion = Vector3.zero; 
             Vector3 avoid = Vector3.zero;
-            
+            uint avoidCount = 0; // The separation component must be divided by just the number of boids that affect said component.
+
             for (int count = 0; count < mCurrentBuddies.Count; ++count)
             {
                 Rigidbody body = mCurrentBuddies[count].GetComponent<Rigidbody>();
-                align += body.velocity;
-                cohesion += mCurrentBuddies[count].transform.position;
                 if ( ( mCurrentBuddies[count].transform.position - transform.position ).magnitude < AvoidDistance)
                 {
                     avoid += mCurrentBuddies[count].transform.position;
+                    avoidCount++;
                 }
             }
 
-            align /= mCurrentBuddies.Count;
-            cohesion /= mCurrentBuddies.Count;
-            avoid /= mCurrentBuddies.Count;
+            avoid /= avoidCount;
 
-            align.Normalize();
-            cohesion = cohesion - transform.position;
-            cohesion.Normalize();
             avoid = transform.position - avoid;
             avoid.Normalize();
 
-            mBody.AddForce(( align + cohesion + avoid) * Speed * Time.deltaTime);
+            mBody.AddForce(avoid * Speed * Time.deltaTime);
         }
     }
 }
