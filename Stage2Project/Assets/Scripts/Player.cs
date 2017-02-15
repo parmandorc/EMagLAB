@@ -11,6 +11,16 @@ public class Player : NetworkBehaviour
 
     private Rigidbody mBody;
 
+    public override void OnStartLocalPlayer()
+    {
+        base.OnStartLocalPlayer();
+        GameManager manager = FindObjectOfType<GameManager>();
+        if (manager != null)
+        {
+            manager.RegisterLocalPlayer(this);
+        }
+    }
+
     void Awake()
     {
         mBody = GetComponent<Rigidbody>();

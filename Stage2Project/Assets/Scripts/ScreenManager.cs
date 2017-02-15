@@ -8,7 +8,7 @@ public class ScreenManager : MonoBehaviour
     public static event GameEvent OnNewGame;
     public static event GameEvent OnExitGame;
 
-    public enum Screens { TitleScreen, GameScreen, ResultScreen, MainMenuScreen, NumScreens }
+    public enum Screens { TitleScreen, GameScreen, VictoryScreen, DefeatScreen, MainMenuScreen, NumScreens }
 
     private Canvas [] mScreens;
     private Screens mCurrentScreen;
@@ -18,6 +18,9 @@ public class ScreenManager : MonoBehaviour
     {
         mNetHUD = GetComponent<NetworkManagerHUDCustom>();
         mNetHUD.enabled = false;
+
+        GameManager.OnVictory += GameManager_OnVictory;
+        GameManager.OnDefeat += GameManager_OnDefeat;
 
         mScreens = new Canvas[(int)Screens.NumScreens];
         Canvas[] screens = GetComponentsInChildren<Canvas>();
@@ -53,7 +56,7 @@ public class ScreenManager : MonoBehaviour
             OnNewGame();
         }
 
-        //TransitionTo(Screens.GameScreen);
+        TransitionTo(Screens.GameScreen);
     }
 
     public void EndGame()
@@ -63,7 +66,7 @@ public class ScreenManager : MonoBehaviour
             OnExitGame();
         }
 
-        //TransitionTo(Screens.ResultScreen);
+        TransitionTo(Screens.MainMenuScreen);
     }
 
     private void TransitionTo(Screens screen)
@@ -72,5 +75,15 @@ public class ScreenManager : MonoBehaviour
         mScreens[(int)screen].enabled = true;
         mCurrentScreen = screen;
         mNetHUD.enabled = screen != Screens.TitleScreen;
+    }
+
+    private void GameManager_OnVictory()
+    {
+        TransitionTo(Screens.VictoryScreen);
+    }
+
+    private void GameManager_OnDefeat()
+    {
+        TransitionTo(Screens.DefeatScreen);
     }
 }

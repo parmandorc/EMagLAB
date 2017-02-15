@@ -13,6 +13,10 @@ public class GameManager : NetworkBehaviour
 {
     public enum State { Playing, GameOver }
 
+    public delegate void GameEvent();
+    public static event GameEvent OnVictory;
+    public static event GameEvent OnDefeat;
+
     [SerializeField]
     private GameObject [] SpawnPrefabs;
 
@@ -34,6 +38,7 @@ public class GameManager : NetworkBehaviour
     [SyncVar]
     private float mGameTimeLeft;
 
+    private GameObject mLocalPlayer;
     private List<GameObject> mObjects;
     private float mNextSpawn;
 
@@ -73,6 +78,51 @@ public class GameManager : NetworkBehaviour
     {
         mGameTimeLeft = 0.0f;
         mState = State.GameOver;
+
+        // Get the scores for all players
+        MagnetizedByPlayer[] objs = FindObjectsOfType<MagnetizedByPlayer>();
+        Dictionary<Player, int> scores = new Dictionary<Player, int>();
+        foreach(MagnetizedByPlayer o in objs)
+        {
+            if (o.isScore && o.ActivePlayer != null)
+            {
+                if (!scores.ContainsKey(o.ActivePlayer))
+                    scores[o.ActivePlayer] = 1;
+                else
+                    scores[o.ActivePlayer]++;
+            }
+        }
+
+        // Get the player with the highest score
+        KeyValuePair<Player, int> victor = new KeyValuePair<Player, int>(null, -1);
+        foreach (KeyValuePair<Player, int> kv in scores)
+        {
+            if (kv.Value > victor.Value)
+            {
+                victor = kv;
+            }
+        }
+
+        RpcClaimVictor(victor.Key.gameObject);
+    }
+
+    [ClientRpc]
+    private void RpcClaimVictor(GameObject victor)
+    {
+        if (victor == mLocalPlayer)
+        {
+            if (OnVictory != null)
+            {
+                OnVictory();
+            }
+        }
+        else
+        {
+            if (OnDefeat != null)
+            {
+                OnDefeat();
+            }
+        }
     }
 
     private void SpawnObject()
@@ -120,5 +170,10 @@ public class GameManager : NetworkBehaviour
     private void ScreenManager_OnExitGame()
     {
         EndGame();
+    }
+
+    public void RegisterLocalPlayer(Player player)
+    {
+        mLocalPlayer = player.gameObject;
     }
 }

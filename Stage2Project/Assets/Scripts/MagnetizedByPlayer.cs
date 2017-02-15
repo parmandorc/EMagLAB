@@ -19,6 +19,9 @@ public class MagnetizedByPlayer : MonoBehaviour
     private Player mPlayer;
     private Rigidbody mBody;
 
+    public Player ActivePlayer { get { return mPlayer; } }
+    public bool isScore { get { return MagnetizeType == Type.Attract; } }
+
     void Awake()
     {
         mBody = GetComponent<Rigidbody>();
@@ -42,23 +45,23 @@ public class MagnetizedByPlayer : MonoBehaviour
 	}
 
     // In multiplayer, the magnetized object will be affected by the closest player
-    void FindClosestPlayer()
+    Player FindClosestPlayer()
     {
-        mPlayer = null;
+        Player player = null;
         Player[] players = FindObjectsOfType<Player>();
         if (players.Length > 0)
         {
-            float minDistance = Vector3.Distance(transform.position, players[0].transform.position);
-            mPlayer = players[0];
-            for (int i = 1; i < players.Length; i++)
+            float minDistance = Mathf.Infinity;
+            for (int i = 0; i < players.Length; i++)
             {
                 float distance = Vector3.Distance(transform.position, players[i].transform.position);
-                if (distance < minDistance)
+                if (distance <= MinimumDistance && distance < minDistance)
                 {
                     minDistance = distance;
                     mPlayer = players[i];
                 }
             }
         }
+        return player;
     }
 }
