@@ -1,3 +1,4 @@
+
 # README #
 
 This is the code repository for Stage 2 of the Search for a Star & Sumo Digital Rising Star Code Competition 2017.  
