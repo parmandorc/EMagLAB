@@ -1,9 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 [RequireComponent(typeof(Rigidbody))]
-public class Player : MonoBehaviour
+public class Player : NetworkBehaviour
 {
     [SerializeField]
     private float Speed;
@@ -17,6 +18,8 @@ public class Player : MonoBehaviour
 
     void Update()
     {
+        if (!isLocalPlayer) return;
+
         Vector3 direction = Vector3.zero;
 
         if (Input.GetKey(KeyCode.A))

@@ -1,11 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class GameManager : MonoBehaviour
+/* The State (Paused | Playing) is not needed anymore, since, with the instance of this class being a NetworkIdentity,
+ * it is now handled by the NetworkManager (the GameManager needs to be a NetworkIdentity because if not it is not possible
+ * to spawn objects across the network). 
+ * Consequently, when the manager is not connected (that is, the game is "paused" / in the main menu), 
+ * the instance of the GameManager will not be enabled, and its Update function will not be called (hence no need for paused state).
+ */ 
+public class GameManager : NetworkBehaviour
 {
-    public enum State { Paused, Playing }
-
     [SerializeField]
     private GameObject [] SpawnPrefabs;
 
@@ -19,32 +24,20 @@ public class GameManager : MonoBehaviour
     private float TimeBetweenSpawns;
 
     private List<GameObject> mObjects;
-    private Player mPlayer;
-    private State mState;
     private float mNextSpawn;
 
     void Awake()
     {
-        mPlayer = Instantiate(PlayerPrefab);
-        mPlayer.transform.parent = transform;
-
         ScreenManager.OnNewGame += ScreenManager_OnNewGame;
         ScreenManager.OnExitGame += ScreenManager_OnExitGame;
     }
 
-    void Start()
-    {
-        Arena.Calculate();
-        mPlayer.enabled = false;
-        mState = State.Paused;
-    }
-
     void Update()
     {
-        if( mState == State.Playing)
+        if (isServer)
         {
             mNextSpawn -= Time.deltaTime;
-            if( mNextSpawn <= 0.0f )
+            if (mNextSpawn <= 0.0f)
             {
                 if (mObjects == null)
                 {
@@ -55,6 +48,7 @@ public class GameManager : MonoBehaviour
                 GameObject spawnObject = SpawnPrefabs[indexToSpawn];
                 GameObject spawnedInstance = Instantiate(spawnObject);
                 spawnedInstance.transform.parent = transform;
+                NetworkServer.Spawn(spawnedInstance);
                 mObjects.Add(spawnedInstance);
                 mNextSpawn = TimeBetweenSpawns;
             }
@@ -72,16 +66,12 @@ public class GameManager : MonoBehaviour
             mObjects.Clear();
         }
 
-        mPlayer.transform.position = new Vector3(0.0f, 0.5f, 0.0f);
         mNextSpawn = TimeBetweenSpawns;
-        mPlayer.enabled = true;
-        mState = State.Playing;
     }
 
     private void EndGame()
     {
-        mPlayer.enabled = false;
-        mState = State.Paused;
+
     }
 
     private void ScreenManager_OnNewGame()

@@ -8,13 +8,17 @@ public class ScreenManager : MonoBehaviour
     public static event GameEvent OnNewGame;
     public static event GameEvent OnExitGame;
 
-    public enum Screens { TitleScreen, GameScreen, ResultScreen, NumScreens }
+    public enum Screens { TitleScreen, GameScreen, ResultScreen, MainMenuScreen, NumScreens }
 
     private Canvas [] mScreens;
     private Screens mCurrentScreen;
+    private NetworkManagerHUDCustom mNetHUD;
 
     void Awake()
     {
+        mNetHUD = GetComponent<NetworkManagerHUDCustom>();
+        mNetHUD.enabled = false;
+
         mScreens = new Canvas[(int)Screens.NumScreens];
         Canvas[] screens = GetComponentsInChildren<Canvas>();
         for (int count = 0; count < screens.Length; ++count)
@@ -37,6 +41,11 @@ public class ScreenManager : MonoBehaviour
         mCurrentScreen = Screens.TitleScreen;
     }
 
+    public void OpenMainMenu()
+    {
+        TransitionTo(Screens.MainMenuScreen);
+    }
+
     public void StartGame()
     {
         if(OnNewGame != null)
@@ -44,7 +53,7 @@ public class ScreenManager : MonoBehaviour
             OnNewGame();
         }
 
-        TransitionTo(Screens.GameScreen);
+        //TransitionTo(Screens.GameScreen);
     }
 
     public void EndGame()
@@ -54,7 +63,7 @@ public class ScreenManager : MonoBehaviour
             OnExitGame();
         }
 
-        TransitionTo(Screens.ResultScreen);
+        //TransitionTo(Screens.ResultScreen);
     }
 
     private void TransitionTo(Screens screen)
@@ -62,5 +71,6 @@ public class ScreenManager : MonoBehaviour
         mScreens[(int)mCurrentScreen].enabled = false;
         mScreens[(int)screen].enabled = true;
         mCurrentScreen = screen;
+        mNetHUD.enabled = screen != Screens.TitleScreen;
     }
 }
