@@ -10,6 +10,8 @@ public class Player : NetworkBehaviour
     private float Speed;
 
     private Rigidbody mBody;
+    private Plane mPlayerPlane;
+    private Camera mCamera;
 
     public override void OnStartLocalPlayer()
     {
@@ -24,32 +26,32 @@ public class Player : NetworkBehaviour
     void Awake()
     {
         mBody = GetComponent<Rigidbody>();
+        mCamera = GameObject.FindGameObjectWithTag("GameCamera").GetComponent<Camera>();
     }
 
-    void Update()
+    private void Start()
+    {
+        mPlayerPlane = new Plane(Vector3.up, transform.position);
+    }
+
+    // Moved player force input to FixedUpdate, since its better suited for rigidbody manipulation
+    void FixedUpdate()
     {
         if (!isLocalPlayer || GameManager.GameState == GameManager.State.GameOver) return;
 
-        Vector3 direction = Vector3.zero;
-
-        if (Input.GetKey(KeyCode.A))
+        // Look at mouse
+        Ray mouseRay = mCamera.ScreenPointToRay(Input.mousePosition);
+        float rayDistance = 0.0f;
+        if (mPlayerPlane.Raycast(mouseRay, out rayDistance))
         {
-            direction = -Vector3.right;
-        }
-        else if (Input.GetKey(KeyCode.D))
-        {
-            direction = Vector3.right;
+            mBody.MoveRotation(Quaternion.LookRotation(mouseRay.GetPoint(rayDistance) - transform.position));
         }
 
-        if (Input.GetKey(KeyCode.W))
+        // Thurst
+        float thrust = Input.GetAxis("Thrust");
+        if (thrust > 0.0f)
         {
-            direction += Vector3.forward;
+            mBody.AddForce(transform.forward * thrust * Speed * Time.deltaTime);
         }
-        else if (Input.GetKey(KeyCode.S))
-        {
-            direction += -Vector3.forward;
-        }
-
-        mBody.AddForce(direction * Speed * Time.deltaTime);
     }
 }
