@@ -82,8 +82,7 @@ public class FlockWithGroup : MonoBehaviour
 
             for (int count = 0; count < mCurrentBuddies.Count; ++count)
             {
-                Rigidbody body = mCurrentBuddies[count].GetComponent<Rigidbody>();
-                if ( ( mCurrentBuddies[count].transform.position - transform.position ).magnitude < AvoidDistance)
+                if ( mCurrentBuddies[count] != null && ( mCurrentBuddies[count].transform.position - transform.position ).magnitude < AvoidDistance)
                 {
                     avoid += mCurrentBuddies[count].transform.position;
                     avoidCount++;

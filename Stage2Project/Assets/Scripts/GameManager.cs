@@ -30,6 +30,12 @@ public class GameManager : NetworkBehaviour
     private float TimeBetweenSpawns;
 
     [SerializeField]
+    private float TimeBetweenVortexes;
+
+    [SerializeField]
+    private float VortexDuration;
+
+    [SerializeField]
     private float MaxGameDuration;
 
     [SyncVar]
@@ -38,9 +44,13 @@ public class GameManager : NetworkBehaviour
     [SyncVar]
     private float mGameTimeLeft;
 
+    [SyncVar]
+    private float mNextVortex;
+
     private GameObject mLocalPlayer;
     private List<GameObject> mObjects;
     private float mNextSpawn;
+    private Vortex mVortex;
 
     public static State GameState { get; private set; }
 
@@ -48,6 +58,8 @@ public class GameManager : NetworkBehaviour
     {
         ScreenManager.OnNewGame += ScreenManager_OnNewGame;
         ScreenManager.OnExitGame += ScreenManager_OnExitGame;
+
+        mVortex = FindObjectOfType<Vortex>();
     }
 
     void Update()
@@ -56,6 +68,12 @@ public class GameManager : NetworkBehaviour
         {
             if (mState == State.Playing)
             {
+                mNextVortex -= Time.deltaTime;
+                if (mNextVortex <= -VortexDuration) // Vortex duration elapsed
+                {
+                    mNextVortex = TimeBetweenVortexes;
+                }
+
                 mGameTimeLeft -= Time.deltaTime;
                 if (mGameTimeLeft <= 0.0f)
                 {
@@ -68,6 +86,16 @@ public class GameManager : NetworkBehaviour
                     SpawnObject();
                 }
             }
+        }
+
+        // Set the state of the vortex
+        if (mNextVortex > 0.0f && mVortex.IsEnabled)
+        {
+            mVortex.IsEnabled = false;
+        }
+        else if (mNextVortex <= 0.0f && !mVortex.IsEnabled)
+        {
+            mVortex.IsEnabled = true;
         }
 
         if (GameState != mState)
@@ -154,6 +182,7 @@ public class GameManager : NetworkBehaviour
 
         mState = State.Playing;
         mNextSpawn = TimeBetweenSpawns;
+        mNextVortex = TimeBetweenVortexes;
         mGameTimeLeft = MaxGameDuration;
     }
 
