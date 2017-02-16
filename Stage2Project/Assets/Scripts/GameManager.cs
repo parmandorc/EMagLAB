@@ -188,7 +188,7 @@ public class GameManager : NetworkBehaviour
 
     private void EndGame()
     {
-
+        mVortex.IsEnabled = false;
     }
 
     private void ScreenManager_OnNewGame()

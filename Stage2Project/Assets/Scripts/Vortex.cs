@@ -8,8 +8,8 @@ using UnityEngine.Networking;
  *  since if not, the Vortex object would have to get references to all draggable objects (what if a new object
  *  is spawned after the vortex has been activated?).
  */ 
-public class Vortex : NetworkBehaviour {
-
+public class Vortex : NetworkBehaviour
+{
     [SerializeField]
     private float Force = 1000.0f;
 

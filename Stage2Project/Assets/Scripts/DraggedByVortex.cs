@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
-public class DraggedByVortex : MonoBehaviour {
-
+public class DraggedByVortex : MonoBehaviour
+{
     private Vortex mVortex;
     private Rigidbody mBody;
 
