@@ -30,6 +30,9 @@ public class GameManager : NetworkBehaviour
     private float TimeBetweenSpawns;
 
     [SerializeField]
+    private float TimeBetweenSpawnsRandomVariance;
+
+    [SerializeField]
     private float TimeBetweenVortexes;
 
     [SerializeField]
@@ -64,6 +67,35 @@ public class GameManager : NetworkBehaviour
 
     void Update()
     {
+        UpdateVortex();
+
+        if (isServer)
+        { 
+            if (mState == State.Playing)
+            { 
+                mGameTimeLeft -= Time.deltaTime;
+                if (mGameTimeLeft <= 0.0f)
+                {
+                    OnGameOver();
+                }
+
+                if (!mVortex.IsEnabled)
+                {
+                    mNextSpawn -= Time.deltaTime;
+                    if (mNextSpawn <= 0.0f)
+                    {
+                        SpawnObject();
+                    }
+                }
+            }
+        }
+
+        if (GameState != mState)
+            GameState = mState;
+    }
+
+    private void UpdateVortex()
+    {
         if (isServer)
         {
             if (mState == State.Playing)
@@ -72,18 +104,6 @@ public class GameManager : NetworkBehaviour
                 if (mNextVortex <= -VortexDuration) // Vortex duration elapsed
                 {
                     mNextVortex = TimeBetweenVortexes;
-                }
-
-                mGameTimeLeft -= Time.deltaTime;
-                if (mGameTimeLeft <= 0.0f)
-                {
-                    OnGameOver();
-                }
-
-                mNextSpawn -= Time.deltaTime;
-                if (mNextSpawn <= 0.0f)
-                {
-                    SpawnObject();
                 }
             }
         }
@@ -97,9 +117,6 @@ public class GameManager : NetworkBehaviour
         {
             mVortex.IsEnabled = true;
         }
-
-        if (GameState != mState)
-            GameState = mState;
     }
 
     private void OnGameOver()
@@ -166,7 +183,7 @@ public class GameManager : NetworkBehaviour
         spawnedInstance.transform.parent = transform;
         NetworkServer.Spawn(spawnedInstance);
         mObjects.Add(spawnedInstance);
-        mNextSpawn = TimeBetweenSpawns;
+        mNextSpawn = TimeBetweenSpawns + TimeBetweenSpawnsRandomVariance * Random.Range(-1.0f, 1.0f);
     }
 
     private void BeginNewGame()
@@ -181,7 +198,7 @@ public class GameManager : NetworkBehaviour
         }
 
         mState = State.Playing;
-        mNextSpawn = TimeBetweenSpawns;
+        mNextSpawn = TimeBetweenSpawns + TimeBetweenSpawnsRandomVariance * Random.Range(-1.0f, 1.0f);
         mNextVortex = TimeBetweenVortexes;
         mGameTimeLeft = MaxGameDuration;
     }
