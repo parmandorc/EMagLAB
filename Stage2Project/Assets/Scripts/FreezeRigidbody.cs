@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Freezes the movement of a rigidbody. Used for freezing the scene after game over.
 [RequireComponent(typeof(Rigidbody))]
-public class FreezeRigidbody : MonoBehaviour {
-
+public class FreezeRigidbody : MonoBehaviour
+{
     private Rigidbody mBody;
 
     void Awake()
@@ -27,10 +28,4 @@ public class FreezeRigidbody : MonoBehaviour {
             }
         }
 	}
-
-    public void Freeze()
-    {
-        mBody.velocity = Vector3.zero;
-        mBody.angularVelocity = Vector3.zero;
-    }
 }

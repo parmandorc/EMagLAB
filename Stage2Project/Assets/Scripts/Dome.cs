@@ -21,6 +21,12 @@ public class Dome : MonoBehaviour
     {
         if (mVortex == null)
         {
+            // Get a reference to the Vortex object
+            /* This should usually be done in the Awake or Start function.
+             *  However, this wasn't consistent in multiplayer: in some clients, the Vortex
+             *  component hadn't been created when reaching this component's Awake/Start.
+             *  Until a more elegant solution is found, this will get a reference to the Vortex.
+             */ 
             mVortex = FindObjectOfType<Vortex>();
             if (mVortex != null)
             {

@@ -12,7 +12,7 @@ public class RandomStartPosition : NetworkBehaviour
     private float outterRadius;
 
     /* This should only execute on the Server's Start, since if not it will cause several weird behaviours.
-     * If it runs on the client, whenever said client connects to the game, all objects with this component will
+     * If it runs on the client, whenever said client connects to the game, all existing objects with this component will
      *  calculate a random position, which will then be overridden by the server's position, causing all the objects
      *  in the client's screen to sweep to their final position.
      * If it runs on the authority, the previous problem is solved. However, whenever a player joins the game,

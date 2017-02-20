@@ -4,12 +4,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 public class WrapPosition : NetworkBehaviour
-{
-	void Awake()
-    {
-		
-	}
-	
+{	
 	void Update ()
     {
         /* This should only execute on the authority, since if not, a client without authority might incorrectly wrap

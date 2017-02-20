@@ -3,16 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
-/* The State (Paused | Playing) is not needed anymore, since, with the instance of this class being a NetworkIdentity,
- * it is now handled by the NetworkManager (the GameManager needs to be a NetworkIdentity because if not it is not possible
- * to spawn objects across the network). 
- * Consequently, when the manager is not connected (that is, the game is "paused" / in the main menu), 
- * the instance of the GameManager will not be enabled, and its Update function will not be called (hence no need for paused state).
- */ 
 public class GameManager : NetworkBehaviour
 {
     public enum State { Playing, GameOver }
 
+    // Events to update the UI scene
     public delegate void GameEvent();
     public static event GameEvent OnVictory;
     public static event GameEvent OnDefeat;
@@ -111,7 +106,7 @@ public class GameManager : NetworkBehaviour
             }
         }
 
-        // Set the state of the vortex
+        // Set the state of the vortex (this is done on clients too so the vortex state is updated properly).
         if (mNextVortex > 0.0f && mVortex.IsEnabled)
         {
             mVortex.IsEnabled = false;
@@ -217,6 +212,7 @@ public class GameManager : NetworkBehaviour
 
     public void AddPlayer(Player player)
     {
+        // Assign the first unassigned Deposit to this player
         for (int i = 0; i < Deposits.Length; i++)
         {
             if (Deposits[i].Player == null)
@@ -229,6 +225,7 @@ public class GameManager : NetworkBehaviour
 
     public void RemovePlayer(Player player)
     {
+        // Unassign the Deposit that was assigned to this player, so it's available again
         for (int i = 0; i < Deposits.Length; i++)
         {
             if (Deposits[i].Player == player)
@@ -237,7 +234,9 @@ public class GameManager : NetworkBehaviour
             }
         }
     }
-
+    
+    // Registers the Player which holds the local player for this client.
+    // When the Server claims a victor on game over, this is used to update the client's UI victory/defeat message accoridingly.
     public void RegisterLocalPlayer(Player player)
     {
         mLocalPlayer = player.gameObject;

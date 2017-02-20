@@ -13,6 +13,7 @@ public class Score : NetworkBehaviour
 	public void IncrementScore(string tag) { UpdateScore(tag, true); }
     public void DecrementScore(string tag) { UpdateScore(tag, false); }
 
+    // The Server must have authority on the Scores, so only the server can update the score values.
     [ServerCallback]
     private void UpdateScore(string tag, bool doIncrement)
     {
@@ -28,7 +29,5 @@ public class Score : NetworkBehaviour
                 mScoreTwo += value;
                 break;
         }
-
-        Debug.Log("Score (" + gameObject + "): " + TotalScore);
     }
 }

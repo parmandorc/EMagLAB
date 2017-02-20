@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/* This class handles the corner deposits of the game.
+ * A player can earn points by putting the appropriate objects in their assigned corner of the level.
+ * Units inside the deposit are not affected by the Vortex.
+ */
 public class Deposit : MonoBehaviour
 {
     [SerializeField]
@@ -25,11 +29,14 @@ public class Deposit : MonoBehaviour
             if (other.gameObject.CompareTag(AffectedTag))
             {
                 mObjects.Add(other.gameObject);
+
+                // Update score
                 if (mScore != null)
                 {
                     mScore.IncrementScore(other.gameObject.tag);
                 }
 
+                // Update vortex dragging behaviour
                 DraggedByVortex dragComponent = other.gameObject.GetComponent<DraggedByVortex>();
                 if (dragComponent != null)
                 {
@@ -46,11 +53,14 @@ public class Deposit : MonoBehaviour
             if (other.gameObject.CompareTag(AffectedTag))
             {
                 mObjects.Remove(other.gameObject);
+
+                // Update score
                 if (mScore != null)
                 {
                     mScore.DecrementScore(other.gameObject.tag);
                 }
 
+                // Update vortex dragging behaviour
                 DraggedByVortex dragComponent = other.gameObject.GetComponent<DraggedByVortex>();
                 if (dragComponent != null)
                 {
@@ -60,6 +70,7 @@ public class Deposit : MonoBehaviour
         }
     }
 
+    // Sets the assigned player for this deposit. This is called by the GameManager.
     public void SetPlayer(Player player)
     {
         mPlayer = player;

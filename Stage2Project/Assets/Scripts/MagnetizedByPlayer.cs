@@ -21,8 +21,6 @@ public class MagnetizedByPlayer : MonoBehaviour
 
     private Player mPlayer;
     private Rigidbody mBody;
-
-    public Player ActivePlayer { get { return mPlayer; } }
     
     void Awake()
     {
@@ -67,6 +65,7 @@ public class MagnetizedByPlayer : MonoBehaviour
 
         if (player != mPlayer)
         {
+            // If player changed, update the scores (if this units affects the score).
             if (AffectsScore && mPlayer != null) mPlayer.GetComponent<Score>().DecrementScore(tag);
             mPlayer = player;
             if (AffectsScore && mPlayer != null) mPlayer.GetComponent<Score>().IncrementScore(tag);
