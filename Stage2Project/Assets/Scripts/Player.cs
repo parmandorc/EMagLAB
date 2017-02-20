@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 [RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Score))]
 public class Player : NetworkBehaviour
 {
     [SerializeField]
@@ -23,13 +24,33 @@ public class Player : NetworkBehaviour
         }
     }
 
+    public override void OnStartServer()
+    {
+        base.OnStartServer();
+
+        GameManager manager = FindObjectOfType<GameManager>();
+        if (manager != null)
+        {
+            manager.AddPlayer(this);
+        }
+    }
+
+    void OnDestroy()
+    {
+        GameManager manager = FindObjectOfType<GameManager>();
+        if (manager != null)
+        {
+            manager.RemovePlayer(this);
+        }
+    }
+
     void Awake()
     {
         mBody = GetComponent<Rigidbody>();
         mCamera = GameObject.FindGameObjectWithTag("GameCamera").GetComponent<Camera>();
     }
 
-    private void Start()
+    void Start()
     {
         mPlayerPlane = new Plane(Vector3.up, transform.position);
     }

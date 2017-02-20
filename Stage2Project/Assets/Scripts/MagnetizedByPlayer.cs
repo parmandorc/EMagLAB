@@ -16,12 +16,14 @@ public class MagnetizedByPlayer : MonoBehaviour
     [SerializeField]
     private Type MagnetizeType = Type.Repel;
 
+    [SerializeField]
+    private bool AffectsScore = false;
+
     private Player mPlayer;
     private Rigidbody mBody;
 
     public Player ActivePlayer { get { return mPlayer; } }
-    public bool isScore { get { return MagnetizeType == Type.Attract; } }
-
+    
     void Awake()
     {
         mBody = GetComponent<Rigidbody>();
@@ -45,7 +47,7 @@ public class MagnetizedByPlayer : MonoBehaviour
 	}
 
     // In multiplayer, the magnetized object will be affected by the closest player
-    Player FindClosestPlayer()
+    void FindClosestPlayer()
     {
         Player player = null;
         Player[] players = FindObjectsOfType<Player>();
@@ -58,10 +60,16 @@ public class MagnetizedByPlayer : MonoBehaviour
                 if (distance <= MinimumDistance && distance < minDistance)
                 {
                     minDistance = distance;
-                    mPlayer = players[i];
+                    player = players[i];
                 }
             }
         }
-        return player;
+
+        if (player != mPlayer)
+        {
+            if (AffectsScore && mPlayer != null) mPlayer.GetComponent<Score>().DecrementScore(tag);
+            mPlayer = player;
+            if (AffectsScore && mPlayer != null) mPlayer.GetComponent<Score>().IncrementScore(tag);
+        }
     }
 }

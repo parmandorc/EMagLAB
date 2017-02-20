@@ -41,6 +41,9 @@ public class GameManager : NetworkBehaviour
     [SerializeField]
     private float MaxGameDuration;
 
+    [SerializeField]
+    private Deposit[] Deposits;
+
     [SyncVar]
     private State mState;
 
@@ -125,17 +128,11 @@ public class GameManager : NetworkBehaviour
         mState = State.GameOver;
 
         // Get the scores for all players
-        MagnetizedByPlayer[] objs = FindObjectsOfType<MagnetizedByPlayer>();
+        Player[] players = FindObjectsOfType<Player>();
         Dictionary<Player, int> scores = new Dictionary<Player, int>();
-        foreach(MagnetizedByPlayer o in objs)
+        foreach(Player p in players)
         {
-            if (o.isScore && o.ActivePlayer != null)
-            {
-                if (!scores.ContainsKey(o.ActivePlayer))
-                    scores[o.ActivePlayer] = 1;
-                else
-                    scores[o.ActivePlayer]++;
-            }
+            scores.Add(p, p.GetComponent<Score>().TotalScore);
         }
 
         // Get the player with the highest score
@@ -216,6 +213,29 @@ public class GameManager : NetworkBehaviour
     private void ScreenManager_OnExitGame()
     {
         EndGame();
+    }
+
+    public void AddPlayer(Player player)
+    {
+        for (int i = 0; i < Deposits.Length; i++)
+        {
+            if (Deposits[i].Player == null)
+            {
+                Deposits[i].SetPlayer(player);
+                break;
+            }
+        }
+    }
+
+    public void RemovePlayer(Player player)
+    {
+        for (int i = 0; i < Deposits.Length; i++)
+        {
+            if (Deposits[i].Player == player)
+            {
+                Deposits[i].SetPlayer(null);
+            }
+        }
     }
 
     public void RegisterLocalPlayer(Player player)
