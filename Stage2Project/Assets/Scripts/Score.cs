@@ -13,7 +13,7 @@ public class Score : NetworkBehaviour
 	public void IncrementScore(string tag) { UpdateScore(tag, true); }
     public void DecrementScore(string tag) { UpdateScore(tag, false); }
 
-    [Server]
+    [ServerCallback]
     private void UpdateScore(string tag, bool doIncrement)
     {
         int value = doIncrement ? 1 : -1;

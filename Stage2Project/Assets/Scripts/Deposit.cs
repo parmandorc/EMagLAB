@@ -20,24 +20,42 @@ public class Deposit : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.CompareTag(AffectedTag))
+        if (mPlayer != null)
         {
-            mObjects.Add(other.gameObject);
-            if (mScore != null)
+            if (other.gameObject.CompareTag(AffectedTag))
             {
-                mScore.IncrementScore(other.gameObject.tag);
+                mObjects.Add(other.gameObject);
+                if (mScore != null)
+                {
+                    mScore.IncrementScore(other.gameObject.tag);
+                }
+
+                DraggedByVortex dragComponent = other.gameObject.GetComponent<DraggedByVortex>();
+                if (dragComponent != null)
+                {
+                    dragComponent.SetEnabled(false);
+                }
             }
         }
     }
 
     void OnTriggerExit(Collider other)
     {
-        if (other.gameObject.CompareTag(AffectedTag))
+        if (mPlayer != null)
         {
-            mObjects.Remove(other.gameObject);
-            if (mScore != null)
+            if (other.gameObject.CompareTag(AffectedTag))
             {
-                mScore.DecrementScore(other.gameObject.tag);
+                mObjects.Remove(other.gameObject);
+                if (mScore != null)
+                {
+                    mScore.DecrementScore(other.gameObject.tag);
+                }
+
+                DraggedByVortex dragComponent = other.gameObject.GetComponent<DraggedByVortex>();
+                if (dragComponent != null)
+                {
+                    dragComponent.SetEnabled(false);
+                }
             }
         }
     }
