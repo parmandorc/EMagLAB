@@ -16,13 +16,23 @@ public class Vortex : NetworkBehaviour
     [SerializeField]
     private GameObject Dome;
 
+    [SerializeField]
+    private GameObject DomeBolts;
+
     public float DragForce { get { return Force; } }
+
+    private float[] mBoltsRescalings;
 
     void Awake()
     {
         if (Dome == null)
         {
             Dome = GameObject.Find("Dome");
+        }
+
+        if (DomeBolts == null)
+        {
+            DomeBolts = GameObject.Find("DomeBolts");
         }
     }
 
@@ -35,12 +45,41 @@ public class Vortex : NetworkBehaviour
     }
 
     void OnEnable()
-    {
+    {        
         Dome.SetActive(false);
+
+        // Rescale dome bolts out
+        mBoltsRescalings = new float[DomeBolts.transform.childCount];
+        for (int i = 0; i < mBoltsRescalings.Length; i++)
+        {
+            mBoltsRescalings[i] = Random.Range(0.0f, 1.0f);
+            DomeBolts.transform.GetChild(i).localScale += new Vector3(0.0f, 0.0f, mBoltsRescalings[i]);
+        }
+
+        // Activate all child gameobjects
+        foreach (Transform child in transform)
+        {
+            child.gameObject.SetActive(true);
+        }
     }
 
     void OnDisable()
     {
         Dome.SetActive(true);
+
+        // Rescale dome bolts back in
+        if (mBoltsRescalings != null)
+        {
+            for (int i = 0; i < mBoltsRescalings.Length; i++)
+            {
+                DomeBolts.transform.GetChild(i).localScale -= new Vector3(0.0f, 0.0f, mBoltsRescalings[i]);
+            }
+        }
+
+        // Deactivate all child gameobjects
+        foreach (Transform child in transform)
+        {
+            child.gameObject.SetActive(false);
+        }
     }
 }

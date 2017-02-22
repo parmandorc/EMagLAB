@@ -24,6 +24,8 @@ public class RotatingBolt : Bolt
     {
         base.Update();
 
+        if (GameManager.GameState == GameManager.State.GameOver) return;
+
         mNextSnap -= Time.deltaTime;
         if (mNextSnap <= 0.0f)
         {

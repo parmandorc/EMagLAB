@@ -26,6 +26,8 @@ public class Bolt : MonoBehaviour
 
     virtual protected void Update()
     {
+        if (GameManager.GameState == GameManager.State.GameOver) return;
+
         mNextFlicker -= Time.deltaTime;
         if (mNextFlicker <= 0.0f)
         {
