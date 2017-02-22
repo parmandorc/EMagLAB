@@ -14,6 +14,9 @@ public class Vortex : NetworkBehaviour
     private float Force = 1000.0f;
 
     [SerializeField]
+    private float RotatingSpeed = 100.0f;
+
+    [SerializeField]
     private GameObject Dome;
 
     [SerializeField]
@@ -22,6 +25,8 @@ public class Vortex : NetworkBehaviour
     public float DragForce { get { return Force; } }
 
     private float[] mBoltsRescalings;
+    private Projector mProjector;
+    private ParticleSystem mParticleEmitter;
 
     void Awake()
     {
@@ -34,6 +39,14 @@ public class Vortex : NetworkBehaviour
         {
             DomeBolts = GameObject.Find("DomeBolts");
         }
+
+        mProjector = gameObject.GetComponentInChildren<Projector>();
+        mParticleEmitter = gameObject.GetComponentInChildren<ParticleSystem>();
+    }
+
+    void Update()
+    {
+        mParticleEmitter.transform.Rotate(0.0f, RotatingSpeed * Time.deltaTime, 0.0f, Space.World);
     }
 
     void OnTriggerEnter(Collider other)
@@ -47,6 +60,8 @@ public class Vortex : NetworkBehaviour
     void OnEnable()
     {        
         Dome.SetActive(false);
+        mProjector.gameObject.SetActive(true);
+        mParticleEmitter.gameObject.SetActive(true);
 
         // Rescale dome bolts out
         mBoltsRescalings = new float[DomeBolts.transform.childCount];
@@ -55,17 +70,13 @@ public class Vortex : NetworkBehaviour
             mBoltsRescalings[i] = Random.Range(0.0f, 1.0f);
             DomeBolts.transform.GetChild(i).localScale += new Vector3(0.0f, 0.0f, mBoltsRescalings[i]);
         }
-
-        // Activate all child gameobjects
-        foreach (Transform child in transform)
-        {
-            child.gameObject.SetActive(true);
-        }
     }
 
     void OnDisable()
     {
         Dome.SetActive(true);
+        mProjector.gameObject.SetActive(false);
+        mParticleEmitter.gameObject.SetActive(false);
 
         // Rescale dome bolts back in
         if (mBoltsRescalings != null)
@@ -74,12 +85,6 @@ public class Vortex : NetworkBehaviour
             {
                 DomeBolts.transform.GetChild(i).localScale -= new Vector3(0.0f, 0.0f, mBoltsRescalings[i]);
             }
-        }
-
-        // Deactivate all child gameobjects
-        foreach (Transform child in transform)
-        {
-            child.gameObject.SetActive(false);
         }
     }
 }
