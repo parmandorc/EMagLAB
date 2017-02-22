@@ -39,6 +39,9 @@ public class GameManager : NetworkBehaviour
     [SerializeField]
     private Deposit[] Deposits;
 
+    [SerializeField]
+    private Color[] PlayerColors;
+
     [SyncVar]
     private State mState;
 
@@ -198,6 +201,15 @@ public class GameManager : NetworkBehaviour
     private void EndGame()
     {
         mVortex.enabled = false;
+
+        // Unassigned deposits
+        for (int i = 0; i < Deposits.Length; i++)
+        {
+            if (Deposits[i].Player != null)
+            {
+                Deposits[i].SetPlayer(null);
+            }
+        }
     }
 
     private void ScreenManager_OnNewGame()
@@ -210,17 +222,41 @@ public class GameManager : NetworkBehaviour
         EndGame();
     }
 
-    public void AddPlayer(Player player)
+    [Server]
+    public int AddPlayer(Player player)
     {
         // Assign the first unassigned Deposit to this player
         for (int i = 0; i < Deposits.Length; i++)
         {
             if (Deposits[i].Player == null)
             {
+                player.SetPlayerColor(PlayerColors[i]);
                 Deposits[i].SetPlayer(player);
-                break;
+                return i;
             }
         }
+
+        return -1;
+    }
+
+    [Client]
+    public void SetPlayer(Player player, int index)
+    {
+        if (index < Deposits.Length)
+        {
+            player.SetPlayerColor(PlayerColors[index]);
+            Deposits[index].SetPlayer(player);
+        }
+    }
+
+    public Color GetPlayerColor(int index)
+    {
+        Color playerColor = Color.clear;
+        if (index < PlayerColors.Length)
+        {
+            playerColor = PlayerColors[index];
+        }
+        return playerColor;
     }
 
     public void RemovePlayer(Player player)

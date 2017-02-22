@@ -10,9 +10,15 @@ public class Player : NetworkBehaviour
     [SerializeField]
     private float Speed;
 
+    [SyncVar]
+    private int mPlayerIndex;
+
     private Rigidbody mBody;
     private Plane mPlayerPlane;
     private Camera mCamera;
+    private Color mColor;
+
+    public Color PlayerColor { get { return mColor; } }
 
     public override void OnStartLocalPlayer()
     {
@@ -31,7 +37,18 @@ public class Player : NetworkBehaviour
         GameManager manager = FindObjectOfType<GameManager>();
         if (manager != null)
         {
-            manager.AddPlayer(this);
+            mPlayerIndex = manager.AddPlayer(this);
+        }
+    }
+
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+
+        GameManager manager = FindObjectOfType<GameManager>();
+        if (manager != null)
+        {
+            manager.SetPlayer(this, mPlayerIndex);
         }
     }
 
@@ -74,5 +91,11 @@ public class Player : NetworkBehaviour
         {
             mBody.AddForce(transform.forward * thrust * Speed * Time.deltaTime);
         }
+    }
+
+    public void SetPlayerColor(Color color)
+    {
+        mColor = color;
+        GetComponent<Renderer>().material.color = mColor;
     }
 }

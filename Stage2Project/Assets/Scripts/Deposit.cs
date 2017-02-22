@@ -14,12 +14,15 @@ public class Deposit : MonoBehaviour
     private Player mPlayer;
     private Score mScore;
     private List<GameObject> mObjects;
+    private Renderer mRenderer;
 
     public Player Player { get { return mPlayer; } }
 
 	void Start ()
     {
         mObjects = new List<GameObject>();
+        mRenderer = gameObject.GetComponent<Renderer>();
+        mRenderer.enabled = false;
 	}
 
     void OnTriggerEnter(Collider other)
@@ -78,6 +81,16 @@ public class Deposit : MonoBehaviour
         if (player != null)
         {
             mScore = player.GetComponent<Score>();
+            mRenderer.enabled = true;
+
+            // Set the color of the player
+            Color newColor = player.PlayerColor;
+            newColor.a = mRenderer.material.color.a;
+            mRenderer.material.color = newColor;
+        }
+        else
+        {
+            mRenderer.enabled = false;
         }
     }
 }
