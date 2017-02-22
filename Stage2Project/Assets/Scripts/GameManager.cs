@@ -77,7 +77,7 @@ public class GameManager : NetworkBehaviour
                     OnGameOver();
                 }
 
-                if (!mVortex.IsEnabled)
+                if (!mVortex.enabled)
                 {
                     mNextSpawn -= Time.deltaTime;
                     if (mNextSpawn <= 0.0f)
@@ -107,13 +107,13 @@ public class GameManager : NetworkBehaviour
         }
 
         // Set the state of the vortex (this is done on clients too so the vortex state is updated properly).
-        if (mNextVortex > 0.0f && mVortex.IsEnabled)
+        if (mNextVortex > 0.0f && mVortex.enabled)
         {
-            mVortex.IsEnabled = false;
+            mVortex.enabled = false;
         }
-        else if (mNextVortex <= 0.0f && !mVortex.IsEnabled)
+        else if (mNextVortex <= 0.0f && !mVortex.enabled)
         {
-            mVortex.IsEnabled = true;
+            mVortex.enabled = true;
         }
     }
 
@@ -197,7 +197,7 @@ public class GameManager : NetworkBehaviour
 
     private void EndGame()
     {
-        mVortex.IsEnabled = false;
+        mVortex.enabled = false;
     }
 
     private void ScreenManager_OnNewGame()

@@ -32,7 +32,7 @@ public class DraggedByVortex : NetworkBehaviour
 
     void Update ()
     {
-		if (mIsEnabled && mVortex.IsEnabled && GameManager.GameState == GameManager.State.Playing)
+		if (mIsEnabled && mVortex.enabled && GameManager.GameState == GameManager.State.Playing)
         {
             Vector3 force = mVortex.transform.position - transform.position;
             force.Normalize();

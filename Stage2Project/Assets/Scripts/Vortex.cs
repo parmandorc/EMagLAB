@@ -13,15 +13,34 @@ public class Vortex : NetworkBehaviour
     [SerializeField]
     private float Force = 1000.0f;
 
+    [SerializeField]
+    private GameObject Dome;
+
     public float DragForce { get { return Force; } }
 
-    public bool IsEnabled;
+    void Awake()
+    {
+        if (Dome == null)
+        {
+            Dome = GameObject.Find("Dome");
+        }
+    }
 
     void OnTriggerEnter(Collider other)
     {
-        if (isServer && IsEnabled)
+        if (isServer & enabled)
         {
             Destroy(other.gameObject);
         }
+    }
+
+    void OnEnable()
+    {
+        Dome.SetActive(false);
+    }
+
+    void OnDisable()
+    {
+        Dome.SetActive(true);
     }
 }
