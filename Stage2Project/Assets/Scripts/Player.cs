@@ -97,5 +97,15 @@ public class Player : NetworkBehaviour
     {
         mColor = color;
         GetComponent<Renderer>().material.color = mColor;
+
+        // Set color for body pieces
+        foreach (Transform child in transform)
+        {
+            Renderer childRenderer = child.GetComponent<Renderer>();
+            if (childRenderer != null)
+            {
+                childRenderer.material.color = mColor;
+            }
+        }
     }
 }
