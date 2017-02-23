@@ -167,8 +167,8 @@ public class NetworkManagerHUDCustom : MonoBehaviour
         {
             if (GUI.Button(new Rect(xpos, ypos, 200, 20), "Stop (X)"))
             {
-                manager.StopHost();
                 mScreenManager.EndGame();
+                manager.StopHost();
             }
             ypos += spacing;
         }

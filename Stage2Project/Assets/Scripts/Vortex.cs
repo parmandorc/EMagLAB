@@ -46,7 +46,22 @@ public class Vortex : NetworkBehaviour
 
     void Update()
     {
-        mParticleEmitter.transform.Rotate(0.0f, RotatingSpeed * Time.deltaTime, 0.0f, Space.World);
+        if (GameManager.GameState != GameManager.State.GameOver)
+        {
+            if (!mParticleEmitter.isPlaying)
+            {
+                mParticleEmitter.Play();
+            }
+
+            mParticleEmitter.transform.Rotate(0.0f, RotatingSpeed * Time.deltaTime, 0.0f, Space.World);
+        }
+        else
+        {
+            if (mParticleEmitter.isPlaying)
+            {
+                mParticleEmitter.Pause();
+            }
+        }
     }
 
     void OnTriggerEnter(Collider other)

@@ -57,7 +57,7 @@ public class Player : NetworkBehaviour
         GameManager manager = FindObjectOfType<GameManager>();
         if (manager != null)
         {
-            manager.RemovePlayer(this);
+            manager.RemovePlayer(mPlayerIndex);
         }
     }
 

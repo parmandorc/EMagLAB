@@ -5,7 +5,9 @@ using UnityEngine.Networking;
 
 public class GameManager : NetworkBehaviour
 {
-    public enum State { Playing, GameOver }
+    public const uint MaxNumberOfPlayers = 4;
+
+    public enum State { MainMenu, Playing, GameOver }
 
     // Events to update the UI scene
     public delegate void GameEvent();
@@ -51,6 +53,7 @@ public class GameManager : NetworkBehaviour
     [SyncVar]
     private float mNextVortex;
 
+    private Player[] mPlayers;
     private GameObject mLocalPlayer;
     private List<GameObject> mObjects;
     private float mNextSpawn;
@@ -64,6 +67,9 @@ public class GameManager : NetworkBehaviour
         ScreenManager.OnExitGame += ScreenManager_OnExitGame;
 
         mVortex = FindObjectOfType<Vortex>();
+        mPlayers = new Player[MaxNumberOfPlayers];
+        Debug.Assert(Deposits.Length >= MaxNumberOfPlayers, "Not enough deposits for the maximum amount of players.");
+        Debug.Assert(PlayerColors.Length >= MaxNumberOfPlayers, "Not enough player colors for the maximum amount of players.");
     }
 
     void Update()
@@ -126,30 +132,40 @@ public class GameManager : NetworkBehaviour
         mState = State.GameOver;
 
         // Get the scores for all players
-        Player[] players = FindObjectsOfType<Player>();
         Dictionary<Player, int> scores = new Dictionary<Player, int>();
-        foreach(Player p in players)
+        foreach(Player p in mPlayers)
         {
-            scores.Add(p, p.GetComponent<Score>().TotalScore);
-        }
-
-        // Get the player with the highest score
-        KeyValuePair<Player, int> victor = new KeyValuePair<Player, int>(null, -1);
-        foreach (KeyValuePair<Player, int> kv in scores)
-        {
-            if (kv.Value > victor.Value)
+            if (p != null)
             {
-                victor = kv;
+                scores.Add(p, p.GetComponent<Score>().TotalScore);
             }
         }
 
-        RpcClaimVictor(victor.Key.gameObject);
+        if (scores.Count > 0)
+        {
+            // Get the player with the highest score
+            KeyValuePair<Player, int> victor = new KeyValuePair<Player, int>(null, -1);
+            foreach (KeyValuePair<Player, int> kv in scores)
+            {
+                if (kv.Value > victor.Value)
+                {
+                    victor = kv;
+                }
+            }
+
+            RpcClaimVictor(victor.Key.gameObject);
+        }
+        else
+        {
+            // All players are dead
+            RpcClaimVictor(null);
+        }
     }
 
     [ClientRpc]
     private void RpcClaimVictor(GameObject victor)
     {
-        if (victor == mLocalPlayer)
+        if (victor != null && victor == mLocalPlayer)
         {
             if (OnVictory != null)
             {
@@ -202,14 +218,18 @@ public class GameManager : NetworkBehaviour
     {
         mVortex.enabled = false;
 
-        // Unassigned deposits
-        for (int i = 0; i < Deposits.Length; i++)
+        // Unregister players and unassign deposits
+        for (int i = 0; i < MaxNumberOfPlayers; i++)
         {
+            mPlayers[i] = null;
             if (Deposits[i].Player != null)
             {
                 Deposits[i].SetPlayer(null);
             }
         }
+
+        mState = State.MainMenu;
+        GameState = State.MainMenu;
     }
 
     private void ScreenManager_OnNewGame()
@@ -226,10 +246,11 @@ public class GameManager : NetworkBehaviour
     public int AddPlayer(Player player)
     {
         // Assign the first unassigned Deposit to this player
-        for (int i = 0; i < Deposits.Length; i++)
+        for (int i = 0; i < MaxNumberOfPlayers; i++)
         {
-            if (Deposits[i].Player == null)
+            if (mPlayers[i] == null)
             {
+                mPlayers[i] = player;
                 player.SetPlayerColor(PlayerColors[i]);
                 Deposits[i].SetPlayer(player);
                 return i;
@@ -240,33 +261,66 @@ public class GameManager : NetworkBehaviour
     }
 
     [Client]
-    public void SetPlayer(Player player, int index)
+    public void SetPlayer(Player player, int playerIndex)
     {
-        if (index < Deposits.Length)
+        if (playerIndex >= MaxNumberOfPlayers)
         {
-            player.SetPlayerColor(PlayerColors[index]);
-            Deposits[index].SetPlayer(player);
+            Debug.LogWarning("Invalid player index: " + playerIndex);
+            return;
         }
+
+        mPlayers[playerIndex] = player;
+        player.SetPlayerColor(PlayerColors[playerIndex]);
+        Deposits[playerIndex].SetPlayer(player);
     }
 
-    public Color GetPlayerColor(int index)
+    public Color GetPlayerColor(int playerIndex)
     {
-        Color playerColor = Color.clear;
-        if (index < PlayerColors.Length)
+        if (playerIndex >= MaxNumberOfPlayers)
         {
-            playerColor = PlayerColors[index];
+            Debug.LogWarning("Invalid player index: " + playerIndex);
+            return Color.clear;
         }
-        return playerColor;
+
+        return PlayerColors[playerIndex];
     }
 
-    public void RemovePlayer(Player player)
+    public void RemovePlayer(int playerIndex)
     {
-        // Unassign the Deposit that was assigned to this player, so it's available again
-        for (int i = 0; i < Deposits.Length; i++)
+        if (playerIndex >= MaxNumberOfPlayers)
         {
-            if (Deposits[i].Player == player)
+            Debug.LogWarning("Invalid player index: " + playerIndex);
+            return;
+        }
+
+        // Game Over for removed player
+        if (mPlayers[playerIndex].gameObject == mLocalPlayer)
+        {
+            if (OnDefeat != null)
             {
-                Deposits[i].SetPlayer(null);
+                OnDefeat();
+            }
+        }
+
+        // Unassign the Deposit that was assigned to this player, so it's available again
+        mPlayers[playerIndex] = null;
+        Deposits[playerIndex].SetPlayer(null);
+
+        // Check for Game Over
+        if (isServer)
+        {
+            int numPlayers = 0;
+            for (int i = 0; i < MaxNumberOfPlayers; i++)
+            {
+                if (mPlayers[i] != null)
+                {
+                    ++numPlayers;
+                }
+            }
+
+            if (numPlayers <= 1)
+            {
+                OnGameOver();
             }
         }
     }
@@ -276,5 +330,12 @@ public class GameManager : NetworkBehaviour
     public void RegisterLocalPlayer(Player player)
     {
         mLocalPlayer = player.gameObject;
+    }
+
+    // This is needed in the event the connection with the host is lost.
+    // Should this happen, the scene must be reset for the main menu.
+    void OnDisable()
+    {
+        EndGame();
     }
 }
