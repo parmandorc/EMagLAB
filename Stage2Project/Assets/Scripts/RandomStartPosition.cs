@@ -3,13 +3,23 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
+
 public class RandomStartPosition : NetworkBehaviour
 {
     [SerializeField]
-    private float innerRadius;
+    private float Height;
 
     [SerializeField]
-    private float outterRadius;
+    private float InnerRadius;
+
+    [SerializeField]
+    private float OutterRadius;
+
+    [SerializeField]
+    private float MinimumInitialForce;
+
+    [SerializeField]
+    private float MaximumInitialForce;
 
     /* This should only execute on the Server's Start, since if not it will cause several weird behaviours.
      * If it runs on the client, whenever said client connects to the game, all existing objects with this component will
@@ -22,9 +32,19 @@ public class RandomStartPosition : NetworkBehaviour
     public override void OnStartServer()
     {
         float angle = Random.Range(0.0f, Mathf.PI * 2);
-        float radius = Random.Range(innerRadius, outterRadius);
+        float radius = Random.Range(InnerRadius, OutterRadius);
         float x = Mathf.Cos(angle) * radius;
         float z = Mathf.Sin(angle) * radius;
-        transform.position = new Vector3(x, 0.5f, z);
+        transform.position = new Vector3(x, Height, z);
+        transform.rotation = Quaternion.LookRotation(new Vector3(x, 0.0f, z));
+
+        if (MinimumInitialForce != 0.0f && MaximumInitialForce != 0.0f)
+        {
+            Rigidbody body = GetComponent<Rigidbody>();
+            if (body != null)
+            {
+                body.AddRelativeForce(Vector3.forward * Random.Range(MinimumInitialForce, MaximumInitialForce), ForceMode.Impulse);
+            }
+        }
     }
 }
