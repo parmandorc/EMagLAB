@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ScreenManager : MonoBehaviour
 {
@@ -8,16 +9,31 @@ public class ScreenManager : MonoBehaviour
     public static event GameEvent OnNewGame;
     public static event GameEvent OnExitGame;
 
-    public enum Screens { TitleScreen, GameScreen, VictoryScreen, DefeatScreen, MainMenuScreen, NumScreens }
+    public enum Screens {
+        TitleScreen,
+
+        GameScreen,
+
+        VictoryScreen,
+        DefeatScreen,
+
+        MainMenuScreen,
+        JoinGameScreen,
+        JoiningScreen,
+        CreateErrorScreen,
+
+        NumScreens }
 
     private Canvas [] mScreens;
     private Screens mCurrentScreen;
     private NetworkManagerHUDCustom mNetHUD;
 
+    [SerializeField]
+    private GameObject EscapeMenu;
+
     void Awake()
     {
         mNetHUD = GetComponent<NetworkManagerHUDCustom>();
-        mNetHUD.enabled = false;
 
         GameManager.OnVictory += GameManager_OnVictory;
         GameManager.OnDefeat += GameManager_OnDefeat;
@@ -44,6 +60,14 @@ public class ScreenManager : MonoBehaviour
         mCurrentScreen = Screens.TitleScreen;
     }
 
+    void Update()
+    {
+        if (mCurrentScreen == Screens.GameScreen && Input.GetKeyDown(KeyCode.Escape)) // Toggle in-game menu
+        {
+            EscapeMenu.SetActive(!EscapeMenu.activeSelf);
+        }
+    }
+
     public void OpenMainMenu()
     {
         TransitionTo(Screens.MainMenuScreen);
@@ -51,12 +75,20 @@ public class ScreenManager : MonoBehaviour
 
     public void StartGame()
     {
-        if(OnNewGame != null)
+        if (mNetHUD.StartHost())
         {
-            OnNewGame();
-        }
+            if (OnNewGame != null)
+            {
+                OnNewGame();
+            }
 
-        TransitionTo(Screens.GameScreen);
+            TransitionTo(Screens.GameScreen);
+            EscapeMenu.SetActive(false);
+        }
+        else
+        {
+            TransitionTo(Screens.CreateErrorScreen);
+        }
     }
 
     public void EndGame()
@@ -67,6 +99,41 @@ public class ScreenManager : MonoBehaviour
         }
 
         TransitionTo(Screens.MainMenuScreen);
+
+        mNetHUD.StopGame();
+    }
+
+    public void SelectHost()
+    {
+        TransitionTo(Screens.JoinGameScreen);
+    }
+
+    public void JoinGame(InputField inputField)
+    {
+        TransitionTo(Screens.JoiningScreen);
+        mNetHUD.StartClient(inputField.text.Length == 0 ? "localhost" : inputField.text);
+    }
+
+    public void OnGameJoined()
+    {
+        if (OnNewGame != null)
+        {
+            OnNewGame();
+        }
+
+        TransitionTo(Screens.GameScreen);
+        EscapeMenu.SetActive(false);
+    }
+
+    public void CancelJoin()
+    {
+        mNetHUD.OnCancelJoin();
+        TransitionTo(Screens.MainMenuScreen);
+    }
+
+    public void ExitGame()
+    {
+        Application.Quit();
     }
 
     private void TransitionTo(Screens screen)
@@ -74,7 +141,6 @@ public class ScreenManager : MonoBehaviour
         mScreens[(int)mCurrentScreen].enabled = false;
         mScreens[(int)screen].enabled = true;
         mCurrentScreen = screen;
-        mNetHUD.enabled = screen != Screens.TitleScreen;
     }
 
     private void GameManager_OnVictory()
