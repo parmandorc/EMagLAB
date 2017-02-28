@@ -7,12 +7,13 @@ public class GameManager : NetworkBehaviour
 {
     public const uint MaxNumberOfPlayers = 4;
 
-    public enum State { MainMenu, Playing, GameOver }
+    public enum State { Lobby, Playing, GameOver }
 
     // Events to update the UI scene
     public delegate void GameEvent();
     public static event GameEvent OnVictory;
     public static event GameEvent OnDefeat;
+    public static event GameEvent OnStart;
 
     [SerializeField]
     private GameObject [] SpawnPrefabs;
@@ -60,10 +61,12 @@ public class GameManager : NetworkBehaviour
     private Vortex mVortex;
 
     public static State GameState { get; private set; }
+    public static int NumberOfPlayers { get; private set; }
 
     void Awake()
     {
         ScreenManager.OnNewGame += ScreenManager_OnNewGame;
+        ScreenManager.OnStartGame += ScreenManager_OnStartGame;
         ScreenManager.OnExitGame += ScreenManager_OnExitGame;
 
         mVortex = FindObjectOfType<Vortex>();
@@ -197,6 +200,7 @@ public class GameManager : NetworkBehaviour
         mNextSpawn = TimeBetweenSpawns + TimeBetweenSpawnsRandomVariance * Random.Range(-1.0f, 1.0f);
     }
 
+    
     private void BeginNewGame()
     {
         if (mObjects != null)
@@ -208,7 +212,7 @@ public class GameManager : NetworkBehaviour
             mObjects.Clear();
         }
 
-        mState = State.Playing;
+        mState = State.Lobby;
         mNextSpawn = TimeBetweenSpawns + TimeBetweenSpawnsRandomVariance * Random.Range(-1.0f, 1.0f);
         mNextVortex = TimeBetweenVortexes;
         mGameTimeLeft = MaxGameDuration;
@@ -227,14 +231,31 @@ public class GameManager : NetworkBehaviour
                 Deposits[i].SetPlayer(null);
             }
         }
+        NumberOfPlayers = 0;
 
-        mState = State.MainMenu;
-        GameState = State.MainMenu;
+        mState = State.Lobby;
+        GameState = State.Lobby;
     }
 
     private void ScreenManager_OnNewGame()
     {
         BeginNewGame();
+    }
+
+    [Server]
+    private void ScreenManager_OnStartGame()
+    {
+        mState = State.Playing;
+        RpcOnStartGame();
+    }
+
+    [ClientRpc]
+    private void RpcOnStartGame()
+    {
+        if (OnStart != null)
+        {
+            OnStart();
+        }
     }
 
     private void ScreenManager_OnExitGame()
@@ -245,6 +266,7 @@ public class GameManager : NetworkBehaviour
     [Server]
     public int AddPlayer(Player player)
     {
+
         // Assign the first unassigned Deposit to this player
         for (int i = 0; i < MaxNumberOfPlayers; i++)
         {
@@ -253,6 +275,7 @@ public class GameManager : NetworkBehaviour
                 mPlayers[i] = player;
                 player.SetPlayerColor(PlayerColors[i]);
                 Deposits[i].SetPlayer(player);
+                ++NumberOfPlayers;
                 return i;
             }
         }
@@ -287,6 +310,7 @@ public class GameManager : NetworkBehaviour
 
     public void RemovePlayer(int playerIndex)
     {
+        Debug.Log("RemovePlayer");
         if (playerIndex >= MaxNumberOfPlayers)
         {
             Debug.LogWarning("Invalid player index: " + playerIndex);
@@ -309,16 +333,7 @@ public class GameManager : NetworkBehaviour
         // Check for Game Over
         if (isServer)
         {
-            int numPlayers = 0;
-            for (int i = 0; i < MaxNumberOfPlayers; i++)
-            {
-                if (mPlayers[i] != null)
-                {
-                    ++numPlayers;
-                }
-            }
-
-            if (numPlayers <= 1)
+            if (--NumberOfPlayers <= 1)
             {
                 OnGameOver();
             }

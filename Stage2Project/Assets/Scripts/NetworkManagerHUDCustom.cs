@@ -36,12 +36,19 @@ public class NetworkManagerHUDCustom : MonoBehaviour
     // Joining a game is an "async" operation. A coroutine is used to determine when the client has connected
     private IEnumerator WaitForJoin()
     {
-        while (!mNetworkManager.IsClientConnected())
+        while (!mNetworkManager.IsClientConnected() && mNetworkManager.isNetworkActive)
         {
             yield return null;
         }
 
-        mScreenManager.OnGameJoined();
+        if (mNetworkManager.client == null || mNetworkManager.client.connection == null || mNetworkManager.client.connection.connectionId == -1)
+        {
+            mScreenManager.OnJoinError();
+        }
+        else
+        {
+            mScreenManager.OnGameJoined();
+        }
     }
 
     public void StopGame()
@@ -52,5 +59,7 @@ public class NetworkManagerHUDCustom : MonoBehaviour
     public void OnCancelJoin()
     {
         mNetworkManager.StopClient();
+
+        StopCoroutine(mCoroutine);
     }
 }

@@ -7,6 +7,7 @@ public class ScreenManager : MonoBehaviour
 {
     public delegate void GameEvent();
     public static event GameEvent OnNewGame;
+    public static event GameEvent OnStartGame;
     public static event GameEvent OnExitGame;
 
     public enum Screens {
@@ -20,7 +21,9 @@ public class ScreenManager : MonoBehaviour
         MainMenuScreen,
         JoinGameScreen,
         JoiningScreen,
+
         CreateErrorScreen,
+        JoinErrorScreen,
 
         NumScreens }
 
@@ -31,12 +34,19 @@ public class ScreenManager : MonoBehaviour
     [SerializeField]
     private GameObject EscapeMenu;
 
+    [SerializeField]
+    private GameObject LobbyHostMenu;
+
+    [SerializeField]
+    private GameObject LobbyClientMenu;
+
     void Awake()
     {
         mNetHUD = GetComponent<NetworkManagerHUDCustom>();
 
         GameManager.OnVictory += GameManager_OnVictory;
         GameManager.OnDefeat += GameManager_OnDefeat;
+        GameManager.OnStart += GameManager_OnStart;
 
         mScreens = new Canvas[(int)Screens.NumScreens];
         Canvas[] screens = GetComponentsInChildren<Canvas>();
@@ -83,11 +93,22 @@ public class ScreenManager : MonoBehaviour
             }
 
             TransitionTo(Screens.GameScreen);
+            LobbyHostMenu.SetActive(true);
+            LobbyClientMenu.SetActive(false);
             EscapeMenu.SetActive(false);
         }
         else
         {
             TransitionTo(Screens.CreateErrorScreen);
+        }
+    }
+
+    public void LobbyStartGame()
+    {
+        if (OnStartGame != null)
+        {
+            OnStartGame();
+            LobbyHostMenu.SetActive(false);
         }
     }
 
@@ -122,6 +143,8 @@ public class ScreenManager : MonoBehaviour
         }
 
         TransitionTo(Screens.GameScreen);
+        LobbyHostMenu.SetActive(false);
+        LobbyClientMenu.SetActive(true);
         EscapeMenu.SetActive(false);
     }
 
@@ -129,6 +152,11 @@ public class ScreenManager : MonoBehaviour
     {
         mNetHUD.OnCancelJoin();
         TransitionTo(Screens.MainMenuScreen);
+    }
+
+    public void OnJoinError()
+    {
+        TransitionTo(Screens.JoinErrorScreen);
     }
 
     public void ExitGame()
@@ -151,5 +179,11 @@ public class ScreenManager : MonoBehaviour
     private void GameManager_OnDefeat()
     {
         TransitionTo(Screens.DefeatScreen);
+    }
+
+    private void GameManager_OnStart()
+    {
+        LobbyHostMenu.SetActive(false);
+        LobbyClientMenu.SetActive(false);
     }
 }
