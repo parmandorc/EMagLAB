@@ -7,6 +7,9 @@ using UnityEngine.Networking;
 // It serves as a level of abstraction from the ScreenManager, which might not know of specifics about networking.
 public class NetworkManagerHUDCustom : MonoBehaviour
 {
+    [SerializeField]
+    private uint NumberOfExtraChecksWhenJoining = 3;
+
     private NetworkManager mNetworkManager;
     private ScreenManager mScreenManager;
     private IEnumerator mCoroutine;
@@ -41,11 +44,24 @@ public class NetworkManagerHUDCustom : MonoBehaviour
             yield return null;
         }
 
-        if (mNetworkManager.client == null || mNetworkManager.client.connection == null || mNetworkManager.client.connection.connectionId == -1)
+        bool failed = false;
+        for (int i = 0; i < NumberOfExtraChecksWhenJoining && !failed; i++)
         {
-            mScreenManager.OnJoinError();
+            // Need to check extra times if successfully joined the game.
+            // When connection is refused by host, there are cases where the connection is created very briefly before refusing it.
+            // Double checking for a few frames consistently manages these cases.
+            if (mNetworkManager.client == null || mNetworkManager.client.connection == null || mNetworkManager.client.connection.connectionId == -1)
+            {
+                mScreenManager.OnJoinError();
+                failed = true;
+            }
+            else
+            {
+                yield return null;
+            }
         }
-        else
+
+        if (!failed)
         {
             mScreenManager.OnGameJoined();
         }
