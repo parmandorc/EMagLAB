@@ -24,6 +24,7 @@ public class ScreenManager : MonoBehaviour
 
         CreateErrorScreen,
         JoinErrorScreen,
+        DisconnectErrorScreen,
 
         NumScreens }
 
@@ -162,6 +163,11 @@ public class ScreenManager : MonoBehaviour
     public void ExitGame()
     {
         Application.Quit();
+    }
+
+    public void OnDisconnectError()
+    {
+        TransitionTo(Screens.DisconnectErrorScreen);
     }
 
     private void TransitionTo(Screens screen)

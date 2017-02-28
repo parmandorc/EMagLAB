@@ -18,6 +18,8 @@ public class NetworkManagerHUDCustom : MonoBehaviour
     {
         mNetworkManager = FindObjectOfType<NetworkManager>();
         mScreenManager = GetComponent<ScreenManager>();
+
+        NetworkManagerCustom.OnDisconnect += NetworkManager_OnDisconnect;
     }
 
     // Tries to start a host. Returns whether it succeeded or not.
@@ -64,6 +66,7 @@ public class NetworkManagerHUDCustom : MonoBehaviour
         if (!failed)
         {
             mScreenManager.OnGameJoined();
+            mCoroutine = null;
         }
     }
 
@@ -77,5 +80,13 @@ public class NetworkManagerHUDCustom : MonoBehaviour
         mNetworkManager.StopClient();
 
         StopCoroutine(mCoroutine);
+    }
+
+    private void NetworkManager_OnDisconnect()
+    {
+        if (mCoroutine == null) // Exclude disconnection while trying to join the game
+        {
+            mScreenManager.OnDisconnectError();
+        }
     }
 }

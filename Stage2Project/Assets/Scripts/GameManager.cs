@@ -310,7 +310,6 @@ public class GameManager : NetworkBehaviour
 
     public void RemovePlayer(int playerIndex)
     {
-        Debug.Log("RemovePlayer");
         if (playerIndex >= MaxNumberOfPlayers)
         {
             Debug.LogWarning("Invalid player index: " + playerIndex);

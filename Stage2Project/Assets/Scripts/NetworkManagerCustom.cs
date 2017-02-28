@@ -5,6 +5,10 @@ using UnityEngine.Networking;
 
 public class NetworkManagerCustom : NetworkManager
 {
+    // Events to update the UI scene
+    public delegate void GameEvent();
+    public static event GameEvent OnDisconnect;
+
     public override void OnServerConnect(NetworkConnection conn)
     {
         if (GameManager.GameState != GameManager.State.Lobby)
@@ -30,5 +34,15 @@ public class NetworkManagerCustom : NetworkManager
         }
 
         base.OnServerAddPlayer(conn, playerControllerId);
+    }
+
+    public override void OnClientDisconnect(NetworkConnection conn)
+    {
+        base.OnClientDisconnect(conn);
+
+        if (OnDisconnect != null)
+        {
+            OnDisconnect();
+        }
     }
 }
