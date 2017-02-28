@@ -9,7 +9,7 @@ public class ScrollingTexture : MonoBehaviour
     private float ScrollingSpeed = 1.0f;
 
     private Renderer mRenderer;
-
+    
 	void Start ()
     {
         mRenderer = gameObject.GetComponent<Renderer>();
@@ -18,6 +18,8 @@ public class ScrollingTexture : MonoBehaviour
 	
 	void Update ()
     {
+        if (GameManager.GameState == GameManager.State.GameOver) return;
+
         Vector2 currentOffset = mRenderer.material.mainTextureOffset;
         mRenderer.material.mainTextureOffset = new Vector2(currentOffset.x, currentOffset.y + ScrollingSpeed * Time.deltaTime);
     }
