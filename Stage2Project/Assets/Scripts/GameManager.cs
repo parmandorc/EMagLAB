@@ -332,7 +332,7 @@ public class GameManager : NetworkBehaviour
         // Check for Game Over
         if (isServer)
         {
-            if (--NumberOfPlayers <= 1)
+            if (--NumberOfPlayers <= 1 && mState == State.Playing)
             {
                 OnGameOver();
             }
