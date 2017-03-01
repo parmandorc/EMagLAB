@@ -67,7 +67,7 @@ public class Deposit : MonoBehaviour
                 DraggedByVortex dragComponent = other.gameObject.GetComponent<DraggedByVortex>();
                 if (dragComponent != null)
                 {
-                    dragComponent.SetEnabled(false);
+                    dragComponent.SetEnabled(true);
                 }
             }
         }
