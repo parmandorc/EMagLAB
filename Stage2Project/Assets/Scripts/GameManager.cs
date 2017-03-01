@@ -11,9 +11,10 @@ public class GameManager : NetworkBehaviour
 
     // Events to update the UI scene
     public delegate void GameEvent();
-    public static event GameEvent OnVictory;
     public static event GameEvent OnDefeat;
     public static event GameEvent OnStart;
+    public delegate void GameEventIntArray(int[] data);
+    public static event GameEventIntArray OnGameOver;
 
     [SerializeField]
     private GameObject [] SpawnPrefabs;
@@ -55,6 +56,7 @@ public class GameManager : NetworkBehaviour
     private float mNextVortex;
 
     private Player[] mPlayers;
+    private int[] mScores;
     private GameObject mLocalPlayer;
     private List<GameObject> mObjects;
     private float mNextSpawn;
@@ -71,6 +73,7 @@ public class GameManager : NetworkBehaviour
 
         mVortex = FindObjectOfType<Vortex>();
         mPlayers = new Player[MaxNumberOfPlayers];
+        mScores = new int[MaxNumberOfPlayers];
         Debug.Assert(Deposits.Length >= MaxNumberOfPlayers, "Not enough deposits for the maximum amount of players.");
         Debug.Assert(PlayerColors.Length >= MaxNumberOfPlayers, "Not enough player colors for the maximum amount of players.");
     }
@@ -86,7 +89,7 @@ public class GameManager : NetworkBehaviour
                 mGameTimeLeft -= Time.deltaTime;
                 if (mGameTimeLeft <= 0.0f)
                 {
-                    OnGameOver();
+                    GameOver();
                 }
 
                 if (!mVortex.enabled)
@@ -129,58 +132,35 @@ public class GameManager : NetworkBehaviour
         }
     }
 
-    private void OnGameOver()
+    [Server]
+    private void GameOver()
     {
         mGameTimeLeft = 0.0f;
         mState = State.GameOver;
 
         // Get the scores for all players
-        Dictionary<Player, int> scores = new Dictionary<Player, int>();
-        foreach(Player p in mPlayers)
+        int[] scores = new int[MaxNumberOfPlayers];
+        for (int i = 0; i < MaxNumberOfPlayers; i++)
         {
-            if (p != null)
+            if (mPlayers[i] != null)
             {
-                scores.Add(p, p.GetComponent<Score>().TotalScore);
+                scores[i] = mPlayers[i].GetComponent<Score>().TotalScore;
+            }
+            else
+            {
+                scores[i] = mScores[i];
             }
         }
 
-        if (scores.Count > 0)
-        {
-            // Get the player with the highest score
-            KeyValuePair<Player, int> victor = new KeyValuePair<Player, int>(null, -1);
-            foreach (KeyValuePair<Player, int> kv in scores)
-            {
-                if (kv.Value > victor.Value)
-                {
-                    victor = kv;
-                }
-            }
-
-            RpcClaimVictor(victor.Key.gameObject);
-        }
-        else
-        {
-            // All players are dead
-            RpcClaimVictor(null);
-        }
+        RpcOnGameOver(scores);
     }
 
     [ClientRpc]
-    private void RpcClaimVictor(GameObject victor)
+    private void RpcOnGameOver(int[] scores)
     {
-        if (victor != null && victor == mLocalPlayer)
+        if (OnGameOver != null)
         {
-            if (OnVictory != null)
-            {
-                OnVictory();
-            }
-        }
-        else
-        {
-            if (OnDefeat != null)
-            {
-                OnDefeat();
-            }
+            OnGameOver(scores);
         }
     }
 
@@ -226,6 +206,7 @@ public class GameManager : NetworkBehaviour
         for (int i = 0; i < MaxNumberOfPlayers; i++)
         {
             mPlayers[i] = null;
+            mScores[i] = -1;
             if (Deposits[i].Player != null)
             {
                 Deposits[i].SetPlayer(null);
@@ -316,6 +297,12 @@ public class GameManager : NetworkBehaviour
             return;
         }
 
+        // Save the score of the player before it is destroyed
+        if (mState != State.Lobby) // Do not save it if the player was removed during lobby
+        {
+            mScores[playerIndex] = mPlayers[playerIndex].GetComponent<Score>().TotalScore;
+        }
+
         // Game Over for removed player
         if (mPlayers[playerIndex].gameObject == mLocalPlayer)
         {
@@ -332,9 +319,9 @@ public class GameManager : NetworkBehaviour
         // Check for Game Over
         if (isServer)
         {
-            if (--NumberOfPlayers <= 1 && mState == State.Playing)
+            if (--NumberOfPlayers <= 0 && mState == State.Playing)
             {
-                OnGameOver();
+                GameOver();
             }
         }
     }

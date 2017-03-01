@@ -15,8 +15,7 @@ public class ScreenManager : MonoBehaviour
 
         GameScreen,
 
-        VictoryScreen,
-        DefeatScreen,
+        ScoresScreen,
 
         MainMenuScreen,
         JoinGameScreen,
@@ -33,6 +32,13 @@ public class ScreenManager : MonoBehaviour
     private NetworkManagerHUDCustom mNetHUD;
 
     [SerializeField]
+    private Text[] ScoreTextElements;
+
+    // Special menu elements
+    // All of these exist in the GameScreen, but they have to be handled depending on the situation
+    // Several screens could be created, but then it would be difficult to have elements that are common to all of them.
+
+    [SerializeField]
     private GameObject EscapeMenu;
 
     [SerializeField]
@@ -41,11 +47,14 @@ public class ScreenManager : MonoBehaviour
     [SerializeField]
     private GameObject LobbyClientMenu;
 
+    [SerializeField]
+    private GameObject DefeatPanel;
+
     void Awake()
     {
         mNetHUD = GetComponent<NetworkManagerHUDCustom>();
 
-        GameManager.OnVictory += GameManager_OnVictory;
+        GameManager.OnGameOver += GameManager_OnGameOver;
         GameManager.OnDefeat += GameManager_OnDefeat;
         GameManager.OnStart += GameManager_OnStart;
 
@@ -96,6 +105,7 @@ public class ScreenManager : MonoBehaviour
             TransitionTo(Screens.GameScreen);
             LobbyHostMenu.SetActive(true);
             LobbyClientMenu.SetActive(false);
+            DefeatPanel.SetActive(false);
             EscapeMenu.SetActive(false);
         }
         else
@@ -146,6 +156,7 @@ public class ScreenManager : MonoBehaviour
         TransitionTo(Screens.GameScreen);
         LobbyHostMenu.SetActive(false);
         LobbyClientMenu.SetActive(true);
+        DefeatPanel.SetActive(false);
         EscapeMenu.SetActive(false);
     }
 
@@ -177,14 +188,27 @@ public class ScreenManager : MonoBehaviour
         mCurrentScreen = screen;
     }
 
-    private void GameManager_OnVictory()
+    private void GameManager_OnGameOver(int[] scores)
     {
-        TransitionTo(Screens.VictoryScreen);
+        for (int i = 0; i < ScoreTextElements.Length; i++)
+        {
+            if (ScoreTextElements[i] != null)
+            {
+                ScoreTextElements[i].text = "-";
+
+                if (i < scores.Length && scores[i] >= 0)
+                {
+                    ScoreTextElements[i].text = "" + scores[i];
+                }
+            }
+        }
+
+        TransitionTo(Screens.ScoresScreen);
     }
 
     private void GameManager_OnDefeat()
     {
-        TransitionTo(Screens.DefeatScreen);
+        DefeatPanel.SetActive(true);
     }
 
     private void GameManager_OnStart()
