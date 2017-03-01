@@ -1,0 +1,21 @@
+fileFormatVersion: 2
+guid: 92d6ddb920b5b08458b7dc34a2ef0edd
+timeCreated: 1488370448
+licenseType: Free
+TrueTypeFontImporter:
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: Aldrich
+  fontNames:
+  - Aldrich
+  fallbackFontReferences: []
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
