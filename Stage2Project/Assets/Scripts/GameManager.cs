@@ -13,6 +13,8 @@ public class GameManager : NetworkBehaviour
     public delegate void GameEvent();
     public static event GameEvent OnDefeat;
     public static event GameEvent OnStart;
+    public delegate void GameEventFloat(float data);
+    public static event GameEventFloat OnGameTimeLeftChange;
     public delegate void GameEventIntArray(int[] data);
     public static event GameEventIntArray OnGameOver;
 
@@ -49,7 +51,7 @@ public class GameManager : NetworkBehaviour
     [SyncVar]
     private State mState;
 
-    [SyncVar]
+    [SyncVar(hook = "HookGameTimeLeft")]
     private float mGameTimeLeft;
 
     [SyncVar]
@@ -105,6 +107,22 @@ public class GameManager : NetworkBehaviour
 
         if (GameState != mState)
             GameState = mState;
+    }
+
+    // Update the state of the timer bar
+    /* It is not very efficient to sync the state of the variable through the network and update the timer bar 
+     * every time it changes value, but this will work until there is time to optimize it. One possible option,
+     * given that all players now start at the same time with the introduction of the Lobby, is that each client
+     * updates the variable locally, with the server only dictating special/important events (like vortex start).
+     */ 
+    private void HookGameTimeLeft(float gameTimeLeft)
+    {
+        mGameTimeLeft = gameTimeLeft;
+        
+        if (OnGameTimeLeftChange != null)
+        {
+            OnGameTimeLeftChange(mGameTimeLeft / MaxGameDuration);
+        }
     }
 
     private void UpdateVortex()

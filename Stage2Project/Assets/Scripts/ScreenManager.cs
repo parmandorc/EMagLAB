@@ -50,6 +50,9 @@ public class ScreenManager : MonoBehaviour
     [SerializeField]
     private GameObject DefeatPanel;
 
+    [SerializeField]
+    private GameObject TimerBar;
+
     void Awake()
     {
         mNetHUD = GetComponent<NetworkManagerHUDCustom>();
@@ -57,6 +60,7 @@ public class ScreenManager : MonoBehaviour
         GameManager.OnGameOver += GameManager_OnGameOver;
         GameManager.OnDefeat += GameManager_OnDefeat;
         GameManager.OnStart += GameManager_OnStart;
+        GameManager.OnGameTimeLeftChange += GameManager_OnGameTimeLeftChange;
 
         mScreens = new Canvas[(int)Screens.NumScreens];
         Canvas[] screens = GetComponentsInChildren<Canvas>();
@@ -106,6 +110,7 @@ public class ScreenManager : MonoBehaviour
             LobbyHostMenu.SetActive(true);
             LobbyClientMenu.SetActive(false);
             DefeatPanel.SetActive(false);
+            TimerBar.transform.parent.gameObject.SetActive(false);
             EscapeMenu.SetActive(false);
         }
         else
@@ -118,8 +123,10 @@ public class ScreenManager : MonoBehaviour
     {
         if (OnStartGame != null)
         {
-            OnStartGame();
+            TimerBar.transform.parent.gameObject.SetActive(true);
             LobbyHostMenu.SetActive(false);
+
+            OnStartGame();
         }
     }
 
@@ -157,6 +164,7 @@ public class ScreenManager : MonoBehaviour
         LobbyHostMenu.SetActive(false);
         LobbyClientMenu.SetActive(true);
         DefeatPanel.SetActive(false);
+        TimerBar.transform.parent.gameObject.SetActive(false);
         EscapeMenu.SetActive(false);
     }
 
@@ -215,5 +223,13 @@ public class ScreenManager : MonoBehaviour
     {
         LobbyHostMenu.SetActive(false);
         LobbyClientMenu.SetActive(false);
+        TimerBar.transform.parent.gameObject.SetActive(true);
+    }
+
+    private void GameManager_OnGameTimeLeftChange(float ratio)
+    {
+        Vector3 barScale = TimerBar.transform.localScale;
+        barScale.x = ratio;
+        TimerBar.transform.localScale = barScale;
     }
 }
