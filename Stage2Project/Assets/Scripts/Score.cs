@@ -8,10 +8,10 @@ public class Score : NetworkBehaviour
     [SerializeField]
     private Vector3 ScoreOffset;
 
-    [SyncVar]
+    [SyncVar(hook = "HookScoreOne")]
     private int mScoreOne;
 
-    [SyncVar]
+    [SyncVar(hook = "HookScoreTwo")]
     private int mScoreTwo;
 
     private TextMesh mInGameScore;
@@ -38,8 +38,6 @@ public class Score : NetworkBehaviour
                     mScoreTwo += value;
                     break;
             }
-
-            RpcUpdateScoreText();
         }
     }
 
@@ -54,8 +52,19 @@ public class Score : NetworkBehaviour
         mInGameScore.transform.position = transform.position + ScoreOffset;
     }
 
-    [ClientRpc]
-    private void RpcUpdateScoreText()
+    private void HookScoreOne(int score)
+    {
+        mScoreOne = score;
+        UpdateScoreText();
+    }
+
+    private void HookScoreTwo(int score)
+    {
+        mScoreTwo = score;
+        UpdateScoreText();
+    }
+
+    private void UpdateScoreText()
     {
         mInGameScore.text = "Score: " + TotalScore;
     }
