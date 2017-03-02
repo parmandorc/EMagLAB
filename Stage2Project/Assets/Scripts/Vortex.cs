@@ -27,6 +27,7 @@ public class Vortex : NetworkBehaviour
     private float[] mBoltsRescalings;
     private Projector mProjector;
     private ParticleSystem mParticleEmitter;
+    private Shake mCameraShake;
 
     void Awake()
     {
@@ -42,6 +43,11 @@ public class Vortex : NetworkBehaviour
 
         mProjector = gameObject.GetComponentInChildren<Projector>();
         mParticleEmitter = gameObject.GetComponentInChildren<ParticleSystem>();
+        GameObject cameraObj = GameObject.FindGameObjectWithTag("GameCamera");
+        if (cameraObj != null)
+        {
+            mCameraShake = cameraObj.GetComponent<Shake>();
+        }
     }
 
     void Update()
@@ -73,10 +79,14 @@ public class Vortex : NetworkBehaviour
     }
 
     void OnEnable()
-    {        
+    {
         Dome.SetActive(false);
         mProjector.gameObject.SetActive(true);
         mParticleEmitter.gameObject.SetActive(true);
+        if (mCameraShake != null)
+        {
+            mCameraShake.BeginShake();
+        }
 
         // Rescale dome bolts out
         mBoltsRescalings = new float[DomeBolts.transform.childCount];
@@ -92,6 +102,10 @@ public class Vortex : NetworkBehaviour
         Dome.SetActive(true);
         mProjector.gameObject.SetActive(false);
         mParticleEmitter.gameObject.SetActive(false);
+        if (mCameraShake != null)
+        {
+            mCameraShake.EndShake();
+        }
 
         // Rescale dome bolts back in
         if (mBoltsRescalings != null)
