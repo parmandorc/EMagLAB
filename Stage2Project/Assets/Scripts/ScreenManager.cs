@@ -25,7 +25,16 @@ public class ScreenManager : MonoBehaviour
         JoinErrorScreen,
         DisconnectErrorScreen,
 
-        NumScreens }
+        InstructionsScreen0,
+        InstructionsScreen1,
+        InstructionsScreen2,
+        InstructionsScreen3,
+        InstructionsScreen4,
+        InstructionsScreen5,
+        InstructionsScreen6,
+
+        NumScreens
+    }
 
     private Canvas [] mScreens;
     private Screens mCurrentScreen;
@@ -187,6 +196,11 @@ public class ScreenManager : MonoBehaviour
     public void OnDisconnectError()
     {
         TransitionTo(Screens.DisconnectErrorScreen);
+    }
+
+    public void GoToInstructions(int index)
+    {
+        TransitionTo(Screens.InstructionsScreen0 + index);
     }
 
     private void TransitionTo(Screens screen)
