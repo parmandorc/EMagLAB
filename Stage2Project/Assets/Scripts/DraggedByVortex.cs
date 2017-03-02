@@ -36,7 +36,7 @@ public class DraggedByVortex : NetworkBehaviour
         {
             Vector3 force = mVortex.transform.position - transform.position;
             force.Normalize();
-            mBody.AddForce(force * mVortex.DragForce);
+            mBody.AddForce(force * mVortex.DragForce, ForceMode.Acceleration);
         }
 	}
 
