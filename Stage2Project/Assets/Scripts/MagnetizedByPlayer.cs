@@ -71,4 +71,17 @@ public class MagnetizedByPlayer : MonoBehaviour
             if (AffectsScore && mPlayer != null) mPlayer.GetComponent<Score>().IncrementScore(tag);
         }
     }
+
+    // When the particle is destroyed, update player's score
+    void OnDestroy()
+    {
+        if (AffectsScore && mPlayer != null)
+        {
+            Score score = mPlayer.GetComponent<Score>();
+            if (score != null)
+            {
+                score.DecrementScore(tag);
+            }
+        }
+    }
 }
