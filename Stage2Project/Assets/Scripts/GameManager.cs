@@ -34,6 +34,9 @@ public class GameManager : NetworkBehaviour
     private float TimeBetweenSpawnsRandomVariance;
 
     [SerializeField]
+    private float PerPlayerSpawnFactor;
+
+    [SerializeField]
     private float TimeBetweenVortexes;
 
     [SerializeField]
@@ -195,7 +198,7 @@ public class GameManager : NetworkBehaviour
         spawnedInstance.transform.parent = transform;
         NetworkServer.Spawn(spawnedInstance);
         mObjects.Add(spawnedInstance);
-        mNextSpawn = TimeBetweenSpawns + TimeBetweenSpawnsRandomVariance * Random.Range(-1.0f, 1.0f);
+        mNextSpawn = (TimeBetweenSpawns + TimeBetweenSpawnsRandomVariance * Random.Range(-1.0f, 1.0f)) / (1 + (NumberOfPlayers - 1) * PerPlayerSpawnFactor);
     }
 
     
