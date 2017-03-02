@@ -108,6 +108,14 @@ public class Player : NetworkBehaviour
         }
     }
 
+    void Update()
+    {
+        if (GameManager.GameState == GameManager.State.GameOver && mThrustParticles.isPlaying)
+        {
+            mThrustParticles.Pause();
+        }
+    }
+
     // Syncs the thrust particles with the rest of the clients
     // Cannot send a ClientRPC directly from the client. 
     // The order needs to pass through the server (as a command) first.
