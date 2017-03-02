@@ -92,11 +92,45 @@ public class Player : NetworkBehaviour
         if (thrust > 0.0f)
         {
             mBody.AddForce(transform.forward * thrust * Speed * Time.deltaTime);
-            if (!mThrustParticles.isPlaying) mThrustParticles.Play();
+            if (!mThrustParticles.isPlaying)
+            {
+                mThrustParticles.Play();
+            }
+            CmdSyncThrust(true);
         }
         else
         {
-            mThrustParticles.Stop();
+            if (mThrustParticles.isPlaying)
+            {
+                mThrustParticles.Stop();
+            }
+            CmdSyncThrust(false);
+        }
+    }
+
+    // Syncs the thrust particles with the rest of the clients
+    // Cannot send a ClientRPC directly from the client. 
+    // The order needs to pass through the server (as a command) first.
+    [Command]
+    private void CmdSyncThrust(bool doPlay)
+    {
+        RpcSyncThrust(doPlay);
+    }
+
+    // Syncs the thrust particles with the rest of the clients
+    [ClientRpc]
+    private void RpcSyncThrust(bool doPlay)
+    {
+        if (!isLocalPlayer) // Clients need to sync other clients' players (not their own)
+        {
+            if (doPlay && !mThrustParticles.isPlaying)
+            {
+                mThrustParticles.Play();
+            }
+            else if (!doPlay && mThrustParticles.isPlaying)
+            {
+                mThrustParticles.Stop();
+            }
         }
     }
 
