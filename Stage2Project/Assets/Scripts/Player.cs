@@ -17,6 +17,7 @@ public class Player : NetworkBehaviour
     private Plane mPlayerPlane;
     private Camera mCamera;
     private Color mColor;
+    private ParticleSystem mThrustParticles;
 
     public Color PlayerColor { get { return mColor; } }
 
@@ -65,6 +66,7 @@ public class Player : NetworkBehaviour
     {
         mBody = GetComponent<Rigidbody>();
         mCamera = GameObject.FindGameObjectWithTag("GameCamera").GetComponent<Camera>();
+        mThrustParticles = GetComponentInChildren<ParticleSystem>();
     }
 
     void Start()
@@ -90,6 +92,11 @@ public class Player : NetworkBehaviour
         if (thrust > 0.0f)
         {
             mBody.AddForce(transform.forward * thrust * Speed * Time.deltaTime);
+            if (!mThrustParticles.isPlaying) mThrustParticles.Play();
+        }
+        else
+        {
+            mThrustParticles.Stop();
         }
     }
 
